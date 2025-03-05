@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kahve Demleme Uygulaması - Sürüm 0.6</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .selected {
+      transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+      background-color: #45a049 !important;
+      box-shadow: 0 0 10px rgba(69, 160, 73, 0.8);
+    }
+    .mode-btn {
+      transition: background-color 0.2s;
+    }
+    .mode-btn.selected {
+      background-color: #2d3748;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    /* Demleme Süreci Bölümü (Modern UI) */
+    #brewProcessSection {
+      background: linear-gradient(135deg, #1e1e1e, #333);
+      border: 2px solid #4caf50;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(76, 175, 80, 0.8);
+      padding: 20px;
+      margin-top: 20px;
+      text-align: center;
+    }
+    #processRecipeSummary {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 1.25rem;
+      margin-bottom: 15px;
+    }
+    #processStopwatch {
+      font-size: 3rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    #keyframeList {
+      text-align: left;
+      margin-top: 15px;
+      max-height: 150px;
+      overflow-y: auto;
+      font-size: 1rem;
+    }
+    .input-label {
+      font-size: 0.75rem;
+      color: #a0aec0;
+      margin-bottom: 0.25rem;
+    }
+    .hardness-suggestion {
+      font-size: 0.75rem;
+      color: #e53e3e;
+      margin-left: 0.5rem;
+    }
+    #pourReminder {
+      font-size: 1.2rem;
+      color: #fbbf24;
+      padding: 8px;
+      margin: 10px 0;
+      border-radius: 8px;
+      background-color: rgba(0, 0, 0, 0.3);
+      transition: opacity 0.3s ease;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+  <!-- Dil seçimi için yeni div -->
+  <div class="absolute top-4 right-4">
+    <select id="languageSelect" class="bg-gray-800 text-white px-3 py-2 rounded-lg border border-gray-600 cursor-pointer hover:bg-gray-700 transition-colors">
+      <option value="tr">TR</option>
+      <option value="en">EN</option>
+    </select>
+  </div>
+
+  <div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold">Kahve Demleme Uygulaması</h1>
+    <div class="flex justify-center gap-4 mt-6">
+      <button id="brewScreenBtn" class="px-4 py-2 bg-blue-500 rounded-lg">Demleme</button>
+      <button id="archiveScreenBtn" class="px-4 py-2 bg-green-500 rounded-lg">Arşiv</button>
+    </div>
+
+    <!-- Demleme Formu -->
+    <div id="brewScreen" class="mt-6">
+      <h2 class="text-xl font-semibold mb-4">Demlemeye Başla</h2>
+      <p class="mb-2">Kahve Türünü Seç:</p>
+      <div class="flex gap-4">
+        <button id="espressoBtn" class="px-6 py-3 bg-red-500 rounded-lg w-1/2">Espresso</button>
+        <button id="v60Btn" class="px-6 py-3 bg-yellow-500 rounded-lg w-1/2">V60</button>
+      </div>
+      <div id="brewDetails" class="hidden mt-4 p-4 bg-gray-800 rounded-lg fade-in">
+        <h3 class="text-lg font-semibold mb-2">Demleme Detayları</h3>
+        <div class="flex items-center gap-2 mb-2">
+          <select id="previousBrews" class="block w-full p-2 text-black rounded-lg">
+            <option value="">Önceki Demlemeler</option>
+          </select>
+          <button id="clearSelection" class="px-3 py-2 bg-gray-600 rounded-lg">Temizle</button>
+        </div>
+        <!-- Reçete Bilgileri -->
+        <div class="mb-2">
+          <label for="recipeName" class="input-label">Reçete İsmi</label>
+          <input type="text" id="recipeName" placeholder="Reçete İsmi" class="block w-full p-2 text-black rounded-lg">
+        </div>
+        <div class="mb-2">
+          <label for="coffeeInfo" class="input-label">Kahve Bilgisi</label>
+          <input type="text" id="coffeeInfo" placeholder="Kahve Bilgisi" class="block w-full p-2 text-black rounded-lg">
+        </div>
+        <!-- Mod Seçimi: Su Miktarına Göre / Gramaja Göre -->
+        <div class="mb-2">
+          <div class="flex gap-4">
+            <button id="modeWater" class="mode-btn px-3 py-2 bg-gray-700 rounded-lg selected">Su Miktarına Göre</button>
+            <button id="modeGrammage" class="mode-btn px-3 py-2 bg-gray-700 rounded-lg">Gramaja Göre</button>
+          </div>
+        </div>
+        <!-- Su Miktarı ve Gramaj Alanları Yanyana -->
+        <div class="mb-2 flex gap-4">
+          <div class="w-1/2">
+            <label for="waterAmount" class="input-label">Su Miktarı (ml)</label>
+            <input type="number" id="waterAmount" value="" placeholder="Su Miktarı (ml)" class="block w-full p-2 text-black rounded-lg">
+          </div>
+          <div class="w-1/2">
+            <label for="grammage" class="input-label">Kahve Gramajı (g)</label>
+            <input type="number" id="grammage" placeholder="Kahve Gramajı (g)" class="block w-full p-2 text-black rounded-lg" disabled>
+          </div>
+        </div>
+        <!-- Sertlik Seçimi -->
+        <div class="mb-2">
+          <label class="input-label">
+            <span id="hardnessLabel">Sertlik (Hardness)</span>
+            <span id="hardnessSuggestion" class="hardness-suggestion"></span>
+          </label>
+          <!-- V60 için sertlik butonları -->
+          <div id="hardnessSelection" class="flex gap-4">
+            <button id="hardnessYonum" data-multiplier="13.33" class="px-3 py-2 bg-gray-600 rounded-lg">Yoğun</button>
+            <button id="hardnessNormal" data-multiplier="15" class="px-3 py-2 bg-gray-600 rounded-lg">Normal</button>
+            <button id="hardnessAcik" data-multiplier="16.66" class="px-3 py-2 bg-gray-600 rounded-lg">Açık</button>
+            <button id="hardnessMakine" data-multiplier="18" class="px-3 py-2 bg-gray-600 rounded-lg">Makine</button>
+          </div>
+          
+          <!-- Espresso için oran ayarı -->
+          <div id="espressoRatioDiv" class="mt-2" style="display: none;">
+            <label class="input-label" for="espressoRatio">Espresso Oranı</label>
+            <input type="number" id="espressoRatio" value="2.0" step="0.1" min="1" class="block w-full p-2 text-black rounded-lg">
+          </div>
+        </div>
+        <!-- Su Sıcaklığı -->
+        <div class="mb-2">
+          <label for="temperature" class="input-label">Su Sıcaklığı (°C)</label>
+          <input type="number" id="temperature" value="94" placeholder="Su Sıcaklığı (°C)" class="block w-full p-2 text-black rounded-lg">
+        </div>
+        <!-- Değirmen Seçimi -->
+        <div class="mb-2">
+          <label for="grinder" class="input-label">Değirmen Modeli</label>
+          <select id="grinder" class="block w-full p-2 text-black rounded-lg">
+            <option value="Molent g50">Molent g50</option>
+            <option value="Timemore">Timemore</option>
+            <option value="Commadante">Commadante</option>
+            <option value="Öğütülmüş">Öğütülmüş</option>
+            <option value="Kullanıcı Tanımlı">Kullanıcı Tanımlı</option>
+          </select>
+        </div>
+        <!-- Klik (Öğütülmüş seçilince gizlenecek) -->
+        <div id="clicksDiv" class="mb-2">
+          <label for="clicks" class="input-label">Öğütüm Aralığı (Klik)</label>
+          <input type="number" id="clicks" placeholder="Öğütüm Aralığı (Klik)" class="block w-full p-2 text-black rounded-lg">
+        </div>
+      </div>
+      <div class="flex gap-4 mt-4 hidden" id="actionButtons">
+        <button id="saveBrew" class="px-4 py-2 bg-blue-500 rounded-lg w-1/2">Kaydet</button>
+        <button id="startBrew" class="px-4 py-2 bg-yellow-500 rounded-lg w-1/2">Kaydet ve Demlemeye Geç</button>
+      </div>
+    </div>
+
+    <!-- Demleme Süreci Bölümü (Animasyonlu, modern UI) -->
+    <div id="brewProcessSection" class="hidden fade-in">
+      <div id="processRecipeSummary"></div>
+      <div id="processStopwatch">00:00</div>
+      <div class="flex justify-center gap-4 mt-4">
+        <button id="addKeyframe" class="px-4 py-2 bg-indigo-500 rounded-lg">Döküş Ekle</button>
+        <button id="finishBrew" class="px-4 py-2 bg-green-500 rounded-lg">Demlemeyi Bitir</button>
+      </div>
+      <div id="keyframeList" class="mt-4"></div>
+      <div class="mt-4">
+        <textarea id="brewComment" placeholder="Demleme sonrası yorumlarınızı yazın..." class="block w-full p-2 text-black rounded-lg mb-2"></textarea>
+      </div>
+    </div>
+
+    <!-- Arşiv Ekranı -->
+    <div id="archiveScreen" class="mt-6 hidden">
+      <h2 class="text-xl font-semibold mb-4">Demleme Arşivi</h2>
+      <div class="flex flex-wrap gap-4 mb-4">
+        <button id="exportRecipes" class="px-4 py-2 bg-blue-500 rounded-lg">Reçeteleri İndir</button>
+        <button id="importRecipes" class="px-4 py-2 bg-green-500 rounded-lg">Reçete Yükle</button>
+        <button id="clearArchive" class="px-4 py-2 bg-red-500 rounded-lg">Listeyi Temizle</button>
+      </div>
+      <div id="archiveList" class="bg-gray-800 p-4 rounded-lg shadow-lg"></div>
+      <input type="file" id="recipeInput" accept=".json" style="display: none;" />
+    </div>
+  </div>
+
+  <script>
+    // Global değişkenleri güncelle
+    let selectedCoffee = "";
+    let brews = [];
+    let stopwatchInterval = null;
+    let stopwatchSeconds = 0;
+    let currentBrewIndex = null;
+    let keyframes = [];
+    let currentHardnessMode = "Normal";
+    let currentHardnessMultiplier = 15;
+    let calcMode = "water";
+
+    // Dil seçenekleri için translations objesi
+    const translations = {
+      tr: {
+        title: "Kahve Demleme Uygulaması - Sürüm 0.6",
+        brewingApp: "Kahve Demleme Uygulaması",
+        brewing: "Demleme",
+        archive: "Arşiv",
+        startBrewing: "Demlemeye Başla",
+        selectCoffeeType: "Kahve Türünü Seç:",
+        brewingDetails: "Demleme Detayları",
+        previousBrews: "Önceki Demlemeler",
+        clear: "Temizle",
+        recipeName: "Reçete İsmi",
+        coffeeInfo: "Kahve Bilgisi",
+        waterMode: "Su Miktarına Göre",
+        gramMode: "Gramaja Göre",
+        waterAmount: "Su Miktarı (ml)",
+        coffeeAmount: "Kahve Gramajı (g)",
+        hardness: "Sertlik (Hardness)",
+        strong: "Yoğun",
+        normal: "Normal",
+        light: "Açık",
+        machine: "Makine",
+        espressoRatio: "Espresso Oranı",
+        waterTemp: "Su Sıcaklığı (°C)",
+        grinderModel: "Değirmen Modeli",
+        grindSize: "Öğütüm Aralığı (Klik)",
+        save: "Kaydet",
+        saveAndBrew: "Kaydet ve Demlemeye Geç",
+        downloadRecipes: "Reçeteleri İndir",
+        uploadRecipe: "Reçete Yükle",
+        clearList: "Listeyi Temizle",
+        noRecords: "Henüz kayıt bulunamadı.",
+        espressoRecipes: "Espresso Reçeteleri",
+        v60Recipes: "V60 Reçeteleri",
+        delete: "Sil",
+        editComment: "Yorum Düzenle",
+        coffee: "Kahve",
+        grinder: "Değirmen",
+        grindSize: "Öğütüm",
+        ratio: "Oran",
+        hardnessLevel: "Sertlik",
+        pours: "Döküşler",
+        comment: "Yorum",
+        addPour: "Döküş Ekle",
+        finishBrewing: "Demlemeyi Bitir",
+        enterComment: "Demleme sonrası yorumlarınızı yazın...",
+        confirmDelete: "Bu demlemeyi silmek istediğinize emin misiniz?",
+        confirmClearAll: "Tüm demlemeleri silmek istediğinize emin misiniz?",
+        enterNewComment: "Yeni yorumu girin:",
+        brewingComplete: "Demleme tamamlandı! Kayıt güncellendi.",
+        fillRequired: "Lütfen tüm gerekli alanları doldurun!",
+        recipeExists: "Bu reçete zaten mevcut. Güncellemek istiyor musunuz?",
+        machineSuggestion: "Makine sertliği öneriliyor",
+        pour: "döküş",
+        min: "dk",
+        sec: "sn"
+      },
+      en: {
+        title: "Coffee Brewing Application - Version 0.6",
+        brewingApp: "Coffee Brewing Application",
+        brewing: "Brewing",
+        archive: "Archive",
+        startBrewing: "Start Brewing",
+        selectCoffeeType: "Select Coffee Type:",
+        brewingDetails: "Brewing Details",
+        previousBrews: "Previous Brews",
+        clear: "Clear",
+        recipeName: "Recipe Name",
+        coffeeInfo: "Coffee Info",
+        waterMode: "By Water Amount",
+        gramMode: "By Coffee Amount",
+        waterAmount: "Water Amount (ml)",
+        coffeeAmount: "Coffee Amount (g)",
+        hardness: "Hardness",
+        strong: "Strong",
+        normal: "Normal",
+        light: "Light",
+        machine: "Machine",
+        espressoRatio: "Espresso Ratio",
+        waterTemp: "Water Temperature (°C)",
+        grinderModel: "Grinder Model",
+        grindSize: "Grind Size (Clicks)",
+        save: "Save",
+        saveAndBrew: "Save and Start Brewing",
+        downloadRecipes: "Download Recipes",
+        uploadRecipe: "Upload Recipe",
+        clearList: "Clear List",
+        noRecords: "No records found yet.",
+        espressoRecipes: "Espresso Recipes",
+        v60Recipes: "V60 Recipes",
+        delete: "Delete",
+        editComment: "Edit Comment",
+        coffee: "Coffee",
+        grinder: "Grinder",
+        grindSize: "Grind Size",
+        ratio: "Ratio",
+        hardnessLevel: "Hardness",
+        pours: "Pours",
+        comment: "Comment",
+        addPour: "Add Pour",
+        finishBrewing: "Finish Brewing",
+        enterComment: "Enter your post-brewing comments...",
+        confirmDelete: "Are you sure you want to delete this brew?",
+        confirmClearAll: "Are you sure you want to delete all brews?",
+        enterNewComment: "Enter new comment:",
+        brewingComplete: "Brewing completed! Record updated.",
+        fillRequired: "Please fill in all required fields!",
+        recipeExists: "This recipe already exists. Do you want to update it?",
+        machineSuggestion: "Machine hardness is recommended",
+        pour: "pour",
+        min: "min",
+        sec: "sec"
+      }
+    };
+
+    // Aktif dil
+    let currentLanguage = 'tr';
+
+    // Dil değiştirme fonksiyonu
+    function changeLanguage(lang) {
+      currentLanguage = lang;
+      document.title = translations[lang].title;
+      
+      // Statik metinleri güncelle
+      document.querySelector('h1').textContent = translations[lang].brewingApp;
+      document.getElementById('brewScreenBtn').textContent = translations[lang].brewing;
+      document.getElementById('archiveScreenBtn').textContent = translations[lang].archive;
+      // ... diğer statik metin güncellemeleri ...
+      
+      // Placeholder'ları güncelle
+      document.getElementById('recipeName').placeholder = translations[lang].recipeName;
+      document.getElementById('coffeeInfo').placeholder = translations[lang].coffeeInfo;
+      document.getElementById('waterAmount').placeholder = translations[lang].waterAmount;
+      document.getElementById('grammage').placeholder = translations[lang].coffeeAmount;
+      document.getElementById('brewComment').placeholder = translations[lang].enterComment;
+      
+      // Buton metinlerini güncelle
+      document.getElementById('modeWater').textContent = translations[lang].waterMode;
+      document.getElementById('modeGrammage').textContent = translations[lang].gramMode;
+      document.getElementById('hardnessYonum').textContent = translations[lang].strong;
+      document.getElementById('hardnessNormal').textContent = translations[lang].normal;
+      document.getElementById('hardnessAcik').textContent = translations[lang].light;
+      document.getElementById('hardnessMakine').textContent = translations[lang].machine;
+      
+      // Arşiv ekranı metinlerini güncelle
+      updateArchiveList();
+    }
+
+    // Dil seçimi event listener'ı
+    document.getElementById('languageSelect').addEventListener('change', function(e) {
+      changeLanguage(e.target.value);
+    });
+
+    // Sayfa yüklendiğinde varsayılan dili ayarla
+    document.addEventListener('DOMContentLoaded', function() {
+      changeLanguage('tr');
+      loadRecipes();
+    });
+
+    // Reçeteleri yükle (localStorage'dan)
+    function loadRecipes() {
+      const savedBrews = localStorage.getItem("brews");
+      if (savedBrews) {
+        brews = JSON.parse(savedBrews);
+        updatePreviousBrews();
+        updateArchiveList();
+      }
+    }
+
+    // Reçeteleri kaydet (localStorage'a)
+    function saveRecipesToStorage() {
+      localStorage.setItem("brews", JSON.stringify(brews));
+      return true;
+    }
+
+    // Tüm reçeteleri dışa aktar
+    function exportAllRecipes() {
+      if (brews.length === 0) {
+        alert("Kaydedilmiş reçete bulunamadı!");
+        return;
+      }
+
+      const dataStr = JSON.stringify(brews, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const date = new Date().toISOString().split('T')[0];
+      a.href = url;
+      a.download = `coffee_recipes_${date}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // Reçeteleri içe aktar
+    function importRecipes(file) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        try {
+          const importedBrews = JSON.parse(event.target.result);
+          
+          if (!Array.isArray(importedBrews)) {
+            throw new Error("Geçersiz dosya formatı");
+          }
+
+          if (confirm("Mevcut reçeteler silinip, yeni reçeteler yüklenecek. Onaylıyor musunuz?")) {
+            brews = importedBrews;
+            saveRecipesToStorage();
+            updatePreviousBrews();
+            updateArchiveList();
+            alert("Reçeteler başarıyla yüklendi!");
+          }
+        } catch (error) {
+          alert("Dosya okunurken hata oluştu: " + error.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Arşiv ekranına yeni butonlar ekle
+    document.getElementById("archiveScreen").innerHTML = `
+      <h2 class="text-xl font-semibold mb-4">Demleme Arşivi</h2>
+      <div class="flex flex-wrap gap-4 mb-4">
+        <button id="exportRecipes" class="px-4 py-2 bg-blue-500 rounded-lg">Reçeteleri İndir</button>
+        <button id="importRecipes" class="px-4 py-2 bg-green-500 rounded-lg">Reçete Yükle</button>
+        <button id="clearArchive" class="px-4 py-2 bg-red-500 rounded-lg">Listeyi Temizle</button>
+      </div>
+      <div id="archiveList" class="bg-gray-800 p-4 rounded-lg shadow-lg"></div>
+      <input type="file" id="recipeInput" accept=".json" style="display: none;" />
+    `;
+
+    // Event Listeners
+    document.getElementById("exportRecipes").addEventListener("click", exportAllRecipes);
+
+    document.getElementById("importRecipes").addEventListener("click", () => {
+      document.getElementById("recipeInput").click();
+    });
+
+    document.getElementById("recipeInput").addEventListener("change", function(e) {
+      if (this.files[0]) {
+        importRecipes(this.files[0]);
+        this.value = ''; // Input'u sıfırla
+      }
+    });
+
+    // Kaydet butonu event listener'ı
+    document.getElementById("saveBrew").addEventListener("click", function() {
+      if (saveBrew()) {
+        alert("Reçete başarıyla kaydedildi!");
+      }
+    });
+
+    // Kaydet ve Demlemeye Geç butonu event listener'ı
+    document.getElementById("startBrew").addEventListener("click", function() {
+      if (saveBrew()) {
+        startBrewProcess();
+      }
+    });
+
+    // Toggle mod: Su Miktarına Göre / Gramaja Göre
+    // Kaydet fonksiyonunu güncelle
+    function saveBrew() {
+      const brew = getBrewDetails();
+      
+      // Validasyon
+      if (!brew.recipeName || !brew.waterAmount || !brew.grammage) {
+        alert(translations[currentLanguage].fillRequired);
+        return false;
+      }
+
+      // Duplicate kontrolü
+      const duplicateIndex = findDuplicateIndex(brew);
+      if (duplicateIndex !== -1) {
+        if (confirm(translations[currentLanguage].recipeExists)) {
+          brews[duplicateIndex] = brew;
+          currentBrewIndex = duplicateIndex;
+        } else {
+          return false;
+        }
+      } else {
+        brews.push(brew);
+        currentBrewIndex = brews.length - 1;
+      }
+
+      // LocalStorage'a kaydet
+      saveRecipesToStorage();
+      updatePreviousBrews();
+      updateArchiveList();
+      return true;
+    }
+
+    // Sayfa yüklendiğinde reçeteleri yükle
+    document.addEventListener('DOMContentLoaded', loadRecipes);
+
+    // Toggle mod: Su Miktarına Göre / Gramaja Göre
+    document.getElementById("modeWater").addEventListener("click", function() {
+      calcMode = "water";
+      this.classList.add("selected");
+      document.getElementById("modeGrammage").classList.remove("selected");
+      document.getElementById("waterAmount").disabled = false;
+      document.getElementById("grammage").disabled = true;
+      const water = parseFloat(document.getElementById("waterAmount").value);
+      if(!isNaN(water)) {
+        updateGrammage(water);
+      }
+    });
+    document.getElementById("modeGrammage").addEventListener("click", function() {
+      calcMode = "gram";
+      this.classList.add("selected");
+      document.getElementById("modeWater").classList.remove("selected");
+      document.getElementById("grammage").disabled = false;
+      document.getElementById("waterAmount").disabled = true;
+      const gram = parseFloat(document.getElementById("grammage").value);
+      if(!isNaN(gram)) {
+        updateWaterFromGrammage(gram);
+      }
+    });
+    
+    // Su miktarına göre gramaj hesaplama (calcMode "water")
+    function updateGrammage(water) {
+      const coffee = Math.round((water / currentHardnessMultiplier) * 10) / 10;
+      document.getElementById("grammage").value = coffee;
+      // Eğer su miktarı 750'yi geçerse ve seçili sertlik "Makine" değilse öneri mesajı gösterilsin
+      const suggestion = document.getElementById("hardnessSuggestion");
+      if(water > 750 && currentHardnessMode !== "Makine") {
+        suggestion.textContent = translations[currentLanguage].machineSuggestion;
+      } else {
+        suggestion.textContent = "";
+      }
+    }
+    
+    // Gramajdan su miktarını hesaplama (calcMode "gram")
+    function updateWaterFromGrammage(gram) {
+      const water = Math.round(gram * currentHardnessMultiplier);
+      document.getElementById("waterAmount").value = water;
+      // Eğer hesaplanan su miktarı 750'yi geçerse ve sertlik "Makine" değilse öneri mesajı
+      const suggestion = document.getElementById("hardnessSuggestion");
+      if(water > 750 && currentHardnessMode !== "Makine") {
+        suggestion.textContent = translations[currentLanguage].machineSuggestion;
+      } else {
+        suggestion.textContent = "";
+      }
+    }
+    
+    // Sertlik butonları
+    function setHardness(mode, multiplier) {
+      currentHardnessMode = mode;
+      currentHardnessMultiplier = multiplier;
+      document.getElementById("hardnessYonum").classList.remove("selected");
+      document.getElementById("hardnessNormal").classList.remove("selected");
+      document.getElementById("hardnessAcik").classList.remove("selected");
+      document.getElementById("hardnessMakine").classList.remove("selected");
+      if(mode === "Yoğun") document.getElementById("hardnessYonum").classList.add("selected");
+      else if(mode === "Normal") document.getElementById("hardnessNormal").classList.add("selected");
+      else if(mode === "Açık") document.getElementById("hardnessAcik").classList.add("selected");
+      else if(mode === "Makine") document.getElementById("hardnessMakine").classList.add("selected");
+      
+      // Hesaplama moduna göre yeniden hesapla
+      if(calcMode === "water") {
+        const water = parseFloat(document.getElementById("waterAmount").value);
+        if(!isNaN(water)) updateGrammage(water);
+      } else {
+        const gram = parseFloat(document.getElementById("grammage").value);
+        if(!isNaN(gram)) updateWaterFromGrammage(gram);
+      }
+    }
+    
+    document.getElementById("hardnessYonum").addEventListener("click", function() {
+      setHardness("Yoğun", parseFloat(this.dataset.multiplier));
+    });
+    document.getElementById("hardnessNormal").addEventListener("click", function() {
+      setHardness("Normal", parseFloat(this.dataset.multiplier));
+    });
+    document.getElementById("hardnessAcik").addEventListener("click", function() {
+      setHardness("Açık", parseFloat(this.dataset.multiplier));
+    });
+    document.getElementById("hardnessMakine").addEventListener("click", function() {
+      setHardness("Makine", parseFloat(this.dataset.multiplier));
+    });
+    
+    // Değirmen seçimi değiştiğinde
+    document.getElementById("grinder").addEventListener("change", function() {
+      const clicksDiv = document.getElementById("clicksDiv");
+      
+      if (this.value === "Öğütülmüş") {
+        clicksDiv.style.display = "none";
+        document.getElementById("clicks").value = "";
+      } else if (this.value === "Kullanıcı Tanımlı") {
+        const newGrinder = prompt("Yeni değirmen modelini girin:");
+        if (newGrinder && newGrinder.trim() !== "") {
+          const option = document.createElement("option");
+          option.value = newGrinder;
+          option.textContent = newGrinder;
+          this.insertBefore(option, this.firstChild);
+          this.value = newGrinder;
+          clicksDiv.style.display = "block";
+        } else {
+          this.value = "Molent g50";
+        }
+      } else {
+        clicksDiv.style.display = "block";
+      }
+    });
+    
+    // Klik varsayılanı ayarlama
+    function setDefaultClicksForCoffee(type) {
+      if(type === "Espresso") {
+        document.getElementById("clicks").value = 5;
+      } else if(type === "V60") {
+        document.getElementById("clicks").value = 37;
+      }
+    }
+    
+    // Duplicate kontrolü
+    function findDuplicateIndex(brew) {
+      return brews.findIndex(b => 
+        b.type === brew.type && // Aynı türde olmalı
+        b.recipeName === brew.recipeName &&
+        b.coffeeInfo === brew.coffeeInfo &&
+        b.grammage === brew.grammage &&
+        b.waterAmount === brew.waterAmount &&
+        b.temperature === brew.temperature &&
+        b.grinder === brew.grinder &&
+        b.clicks === brew.clicks &&
+        ((b.type === "Espresso" && b.espressoRatio === brew.espressoRatio) ||
+         (b.type === "V60" && b.v60Hardness === brew.v60Hardness))
+      );
+    }
+    
+    // Önceki demlemeleri güncelle
+    function updatePreviousBrews() {
+      const select = document.getElementById("previousBrews");
+      select.innerHTML = "<option value=''>Önceki Demlemeler</option>";
+      
+      // Sadece seçili kahve türüne ait reçeteleri göster
+      const filteredBrews = brews.filter(brew => 
+        // Eski kayıtlar için geriye dönük uyumluluk
+        (brew.type === selectedCoffee) || 
+        (selectedCoffee === "V60" && !brew.type && brew.v60Hardness) ||
+        (selectedCoffee === "Espresso" && !brew.type && brew.espressoRatio)
+      );
+      
+      filteredBrews.forEach((brew, index) => {
+        const option = document.createElement("option");
+        const actualIndex = brews.findIndex(b => b === brew); // Gerçek index'i bul
+        option.value = actualIndex;
+        option.textContent = `${brew.recipeName} - ${brew.grammage}g`;
+        select.appendChild(option);
+      });
+
+      // Debug için konsola yazdır
+      console.log("Selected Coffee:", selectedCoffee);
+      console.log("All Brews:", brews);
+      console.log("Filtered Brews:", filteredBrews);
+    }
+    
+    // Arşiv ekranı güncelleme
+    function updateArchiveList() {
+      const archiveList = document.getElementById("archiveList");
+      archiveList.innerHTML = "";
+      
+      if (brews.length === 0) {
+        archiveList.innerHTML = "<p>" + translations[currentLanguage].noRecords + "</p>";
+        return;
+      }
+
+      // Reçeteleri türlerine göre grupla
+      const espressoBrews = brews.filter(brew => brew.type === "Espresso");
+      const v60Brews = brews.filter(brew => brew.type === "V60");
+
+      // Espresso reçeteleri
+      if (espressoBrews.length > 0) {
+        const espressoSection = document.createElement("div");
+        espressoSection.innerHTML = `<h3 class="text-lg font-bold mb-2">${translations[currentLanguage].espressoRecipes}</h3>`;
+        archiveList.appendChild(espressoSection);
+        
+        espressoBrews.forEach((brew, index) => {
+          const brewItem = createBrewItem(brew, brews.indexOf(brew));
+          archiveList.appendChild(brewItem);
+        });
+      }
+
+      // V60 reçeteleri
+      if (v60Brews.length > 0) {
+        const v60Section = document.createElement("div");
+        v60Section.innerHTML = `<h3 class="text-lg font-bold mt-4 mb-2">${translations[currentLanguage].v60Recipes}</h3>`;
+        archiveList.appendChild(v60Section);
+        
+        v60Brews.forEach((brew, index) => {
+          const brewItem = createBrewItem(brew, brews.indexOf(brew));
+          archiveList.appendChild(brewItem);
+        });
+      }
+    }
+    
+    // Reçete öğesi oluşturma yardımcı fonksiyonu
+    function createBrewItem(brew, index) {
+      const brewItem = document.createElement("div");
+      brewItem.className = "p-2 border-b border-gray-600 flex flex-col gap-2";
+      brewItem.innerHTML = `
+        <div>
+          <p><strong>#${index + 1} ${brew.recipeName}</strong></p>
+          <p>${translations[currentLanguage].coffee}: ${brew.coffeeInfo || "-"}</p>
+          <p>${translations[currentLanguage].waterAmount}: ${brew.waterAmount}ml, ${translations[currentLanguage].waterTemp}: ${brew.temperature}°C</p>
+          <p>${translations[currentLanguage].grinder}: ${brew.grinder || "-"}, ${translations[currentLanguage].grindSize}: ${brew.clicks || "-"}</p>
+          ${brew.type === "Espresso" ? 
+            `<p>${translations[currentLanguage].ratio}: ${brew.espressoRatio}</p>` : 
+            `<p>${translations[currentLanguage].hardnessLevel}: ${brew.v60Hardness}</p>`
+          }
+          ${brew.keyframes ? `<p>${translations[currentLanguage].pours}: ${brew.keyframes.join(", ")}</p>` : ""}
+          ${brew.comment ? `<p>${translations[currentLanguage].comment}: ${brew.comment}</p>` : ""}
+        </div>
+        <div>
+          <button onclick="deleteBrew(${index})" class="px-2 py-1 bg-red-500 rounded-lg">${translations[currentLanguage].delete}</button>
+          <button onclick="editComment(${index})" class="px-2 py-1 bg-blue-500 rounded-lg">${translations[currentLanguage].editComment}</button>
+        </div>
+      `;
+      return brewItem;
+    }
+    
+    // Belirli bir demlemeyi silme
+    function deleteBrew(index) {
+      if(confirm(translations[currentLanguage].confirmDelete)) {
+        brews.splice(index, 1);
+        localStorage.setItem("brews", JSON.stringify(brews));
+        updatePreviousBrews();
+        updateArchiveList();
+      }
+    }
+    
+    // Arşivi temizleme
+    document.getElementById("clearArchive").addEventListener("click", function() {
+      if(confirm(translations[currentLanguage].confirmClearAll)) {
+        brews = [];
+        localStorage.setItem("brews", JSON.stringify(brews));
+        updatePreviousBrews();
+        updateArchiveList();
+      }
+    });
+    
+    // Yorum düzenleme
+    function editComment(index) {
+      const newComment = prompt(translations[currentLanguage].enterNewComment, brews[index].comment || "");
+      if(newComment !== null) {
+        brews[index].comment = newComment;
+        localStorage.setItem("brews", JSON.stringify(brews));
+        updateArchiveList();
+      }
+    }
+    
+    // Brew objesi oluşturma fonksiyonu
+    function getBrewDetails() {
+      return {
+        type: selectedCoffee, // "Espresso" veya "V60"
+        recipeName: document.getElementById("recipeName").value,
+        coffeeInfo: document.getElementById("coffeeInfo").value,
+        grammage: document.getElementById("grammage").value,
+        waterAmount: document.getElementById("waterAmount").value,
+        temperature: document.getElementById("temperature").value,
+        grinder: document.getElementById("grinder").value,
+        clicks: document.getElementById("clicks").value,
+        // Kahve türüne göre özel alanlar
+        espressoRatio: selectedCoffee === "Espresso" ? 
+          document.getElementById("espressoRatio").value : null,
+        v60Hardness: selectedCoffee === "V60" ? 
+          currentHardnessMode : null,
+        keyframes: []
+      };
+    }
+
+    // Kahve türü seçimi - Espresso
+    document.getElementById("espressoBtn").addEventListener("click", function() {
+      selectedCoffee = "Espresso";
+      this.classList.add("selected");
+      document.getElementById("v60Btn").classList.remove("selected");
+      document.getElementById("brewDetails").classList.remove("hidden");
+      document.getElementById("actionButtons").classList.remove("hidden");
+      document.getElementById("recipeName").value = "Espresso";
+      
+      // UI güncellemeleri
+      document.getElementById("hardnessSelection").style.display = "none";
+      document.getElementById("hardnessLabel").textContent = "Espresso Oranı";
+      document.getElementById("espressoRatioDiv").style.display = "block";
+      
+      // Varsayılan değerleri ayarla
+      document.getElementById("espressoRatio").value = "2.0";
+      setDefaultClicksForCoffee("Espresso");
+      
+      // Reçete listesini güncelle
+      updatePreviousBrews();
+    });
+
+    // Kahve türü seçimi - V60
+    document.getElementById("v60Btn").addEventListener("click", function() {
+      selectedCoffee = "V60";
+      this.classList.add("selected");
+      document.getElementById("espressoBtn").classList.remove("selected");
+      document.getElementById("brewDetails").classList.remove("hidden");
+      document.getElementById("actionButtons").classList.remove("hidden");
+      document.getElementById("recipeName").value = "V60";
+      
+      // UI güncellemeleri
+      document.getElementById("hardnessSelection").style.display = "flex";
+      document.getElementById("hardnessLabel").textContent = "Sertlik (Hardness)";
+      document.getElementById("espressoRatioDiv").style.display = "none";
+      
+      // Varsayılan değerleri ayarla
+      setDefaultClicksForCoffee("V60");
+      setHardness("Normal", 15); // Varsayılan sertlik ayarı
+      
+      // Reçete listesini güncelle
+      updatePreviousBrews();
+    });
+
+    // Su miktarı değiştiğinde
+    document.getElementById("waterAmount").addEventListener("input", function() {
+      const water = parseFloat(this.value);
+      if (!isNaN(water)) {
+        if (selectedCoffee === "Espresso") {
+          const ratio = parseFloat(document.getElementById("espressoRatio").value);
+          document.getElementById("grammage").value = (water / ratio).toFixed(1);
+        } else {
+          updateGrammage(water);
+        }
+      }
+    });
+
+    // Kahve miktarı değiştiğinde
+    document.getElementById("grammage").addEventListener("input", function() {
+      const gram = parseFloat(this.value);
+      if (!isNaN(gram)) {
+        if (selectedCoffee === "Espresso") {
+          const ratio = parseFloat(document.getElementById("espressoRatio").value);
+          document.getElementById("waterAmount").value = (gram * ratio).toFixed(1);
+        } else {
+          updateWaterFromGrammage(gram);
+        }
+      }
+    });
+
+    // Espresso oranı değiştiğinde
+    document.getElementById("espressoRatio").addEventListener("input", function() {
+      if (selectedCoffee === "Espresso") {
+        const ratio = parseFloat(this.value);
+        if (calcMode === "water") {
+          const water = parseFloat(document.getElementById("waterAmount").value);
+          if (!isNaN(water)) {
+            document.getElementById("grammage").value = (water / ratio).toFixed(1);
+          }
+        } else {
+          const gram = parseFloat(document.getElementById("grammage").value);
+          if (!isNaN(gram)) {
+            document.getElementById("waterAmount").value = (gram * ratio).toFixed(1);
+          }
+        }
+      }
+    });
+
+    // Form alanlarını temizleme
+    function clearForm() {
+      document.getElementById("recipeName").value = "";
+      document.getElementById("coffeeInfo").value = "";
+      document.getElementById("grammage").value = "";
+      document.getElementById("waterAmount").value = "";
+      document.getElementById("temperature").value = "94";
+      document.getElementById("grinder").value = "Molent g50";
+      document.getElementById("clicks").value = "";
+      document.getElementById("espressoRatio").value = "2.0";
+      
+      // Mod sıfırlama
+      calcMode = "water";
+      document.getElementById("modeWater").classList.add("selected");
+      document.getElementById("modeGrammage").classList.remove("selected");
+      document.getElementById("waterAmount").disabled = false;
+      document.getElementById("grammage").disabled = true;
+      
+      // UI sıfırlama
+      document.getElementById("hardnessSuggestion").textContent = "";
+      document.getElementById("previousBrews").value = "";
+    }
+    
+    // Zaman formatlama
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      if (mins > 0) {
+        return `${mins}${translations[currentLanguage].min} ${secs}${translations[currentLanguage].sec}`;
+      }
+      return `${secs}${translations[currentLanguage].sec}`;
+    }
+    
+    // Demleme Süreci Başlatma
+    function startBrewProcess() {
+      document.getElementById("brewScreen").classList.add("hidden");
+      const processSection = document.getElementById("brewProcessSection");
+      processSection.classList.remove("hidden");
+      processSection.classList.add("fade-in");
+    
+      const brew = brews[currentBrewIndex];
+      
+      document.getElementById("processRecipeSummary").innerHTML = `
+        <h1 class="text-3xl font-extrabold">${brew.recipeName}</h1>
+        <p class="text-xl font-bold">${brew.type} Demleme</p>
+        <p>${translations[currentLanguage].coffee}: ${brew.coffeeInfo || "-"}</p>
+        <p>${translations[currentLanguage].waterAmount}: ${brew.waterAmount}ml, ${translations[currentLanguage].waterTemp}: ${brew.temperature}°C</p>
+        <p>${translations[currentLanguage].grinder}: ${brew.grinder || "-"}, ${translations[currentLanguage].grindSize}: ${brew.clicks || "-"}</p>
+        ${brew.type === "Espresso" ? 
+          `<p>${translations[currentLanguage].ratio}: ${brew.espressoRatio}</p>` : 
+          `<p>${translations[currentLanguage].hardnessLevel}: ${brew.v60Hardness}</p>`
+        }
+      `;
+      keyframes = [];
+      document.getElementById("keyframeList").innerHTML = "";
+      document.getElementById("brewComment").value = "";
+
+      stopwatchSeconds = 0;
+      document.getElementById("processStopwatch").textContent = formatTime(stopwatchSeconds);
+      stopwatchInterval = setInterval(() => {
+        stopwatchSeconds++;
+        document.getElementById("processStopwatch").textContent = formatTime(stopwatchSeconds);
+      }, 1000);
+    }
+    
+    // "Döküş Ekle" butonu
+    document.getElementById("addKeyframe").addEventListener("click", function() {
+      const eventNumber = keyframes.length + 1;
+      const formattedTime = formatTime(stopwatchSeconds);
+      const eventText = `${eventNumber}. ${formattedTime}`;
+      keyframes.push(eventText);
+      
+      const keyframeList = document.getElementById("keyframeList");
+      const eventItem = document.createElement("p");
+      eventItem.textContent = eventText;
+      keyframeList.appendChild(eventItem);
+    });
+    
+    // "Demlemeyi Bitir" butonu
+    document.getElementById("finishBrew").addEventListener("click", function() {
+      clearInterval(stopwatchInterval);
+      stopwatchInterval = null;
+      brews[currentBrewIndex].keyframes = keyframes;
+      brews[currentBrewIndex].comment = document.getElementById("brewComment").value;
+      localStorage.setItem("brews", JSON.stringify(brews));
+      alert(translations[currentLanguage].brewingComplete);
+      document.getElementById("brewProcessSection").classList.add("hidden");
+      document.getElementById("brewScreen").classList.remove("hidden");
+      clearForm();
+      currentBrewIndex = null;
+    });
+    
+    // Reçete seçimi
+    document.getElementById("previousBrews").addEventListener("change", function() {
+      const index = this.value;
+      if (index === "") return;
+      const brew = brews[index];
+      
+      // Önce kahve türüne göre doğru butona tıkla
+      if (brew.type === "Espresso") {
+        document.getElementById("espressoBtn").click();
+      } else {
+        document.getElementById("v60Btn").click();
+      }
+      
+      // Sonra değerleri doldur
+      document.getElementById("recipeName").value = brew.recipeName || "";
+      document.getElementById("coffeeInfo").value = brew.coffeeInfo || "";
+      document.getElementById("grammage").value = brew.grammage || "";
+      document.getElementById("waterAmount").value = brew.waterAmount || "";
+      document.getElementById("temperature").value = brew.temperature || "";
+      document.getElementById("grinder").value = brew.grinder || "Molent g50";
+      document.getElementById("clicks").value = brew.clicks || "";
+      
+      // Kahve türüne göre özel ayarlar
+      if (brew.type === "Espresso") {
+        document.getElementById("espressoRatio").value = brew.espressoRatio || "2.0";
+        updateEspressoCalculations(); // Espresso hesaplamalarını güncelle
+      } else {
+        setHardness(brew.v60Hardness || "Normal", 
+          brew.v60Hardness === "Yoğun" ? 13.33 :
+          brew.v60Hardness === "Normal" ? 15 :
+          brew.v60Hardness === "Açık" ? 16.66 :
+          brew.v60Hardness === "Makine" ? 18 : 15
+        );
+      }
+    });
+    
+    // "Temizle" butonu
+    document.getElementById("clearSelection").addEventListener("click", function(){
+      document.getElementById("previousBrews").value = "";
+      clearForm();
+      selectedCoffee = "";
+      document.getElementById("espressoBtn").classList.remove("selected");
+      document.getElementById("v60Btn").classList.remove("selected");
+    });
+    
+    // Ekran geçişleri
+    document.getElementById("brewScreenBtn").addEventListener("click", function() {
+      document.getElementById("archiveScreen").classList.add("hidden");
+      document.getElementById("brewScreen").classList.remove("hidden");
+    });
+    document.getElementById("archiveScreenBtn").addEventListener("click", function() {
+      document.getElementById("brewScreen").classList.add("hidden");
+      document.getElementById("archiveScreen").classList.remove("hidden");
+      updateArchiveList();
+    });
+    document.getElementById("backToBrew").addEventListener("click", function() {
+      document.getElementById("archiveScreen").classList.add("hidden");
+      document.getElementById("brewScreen").classList.remove("hidden");
+    });
+  </script>
+</body>
+</html>
