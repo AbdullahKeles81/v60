@@ -76,6 +76,146 @@
       background-color: rgba(0, 0, 0, 0.3);
       transition: opacity 0.3s ease;
     }
+    
+    /* Pour Steps Styling */
+    .pour-step-item {
+      background: #374151;
+      border: 1px solid #4b5563;
+      border-radius: 8px;
+      padding: 12px;
+      position: relative;
+    }
+    
+    .pour-step-item:hover {
+      border-color: #60a5fa;
+    }
+    
+    .pour-step-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .pour-step-number {
+      background: #3b82f6;
+      color: white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .pour-step-remove {
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .pour-step-remove:hover {
+      background: #dc2626;
+    }
+    
+    .pour-step-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    
+    .pour-step-inputs input {
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid #6b7280;
+      background: #1f2937;
+      color: white;
+      font-size: 14px;
+    }
+    
+    /* Circular Progress Indicator */
+    .pour-progress-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 20px 0;
+    }
+    
+    .pour-progress-circle {
+      position: relative;
+      width: 120px;
+      height: 120px;
+    }
+    
+    .pour-progress-svg {
+      transform: rotate(-90deg);
+      width: 100%;
+      height: 100%;
+    }
+    
+    .pour-progress-bg {
+      fill: none;
+      stroke: #374151;
+      stroke-width: 8;
+    }
+    
+    .pour-progress-fill {
+      fill: none;
+      stroke: #10b981;
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dasharray 0.5s ease-in-out;
+    }
+    
+    .pour-progress-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    
+    .pour-progress-current {
+      font-size: 18px;
+      color: #10b981;
+    }
+    
+    .pour-progress-target {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    
+    .pour-timer {
+      font-size: 3rem;
+      font-weight: bold;
+      color: white;
+      text-align: center;
+      margin: 10px 0;
+      animation: pulse 1s infinite;
+    }
+    
+    .pour-step-active {
+      border-color: #10b981;
+      background: rgba(16, 185, 129, 0.1);
+    }
+    
+    .pour-step-completed {
+      border-color: #6b7280;
+      background: rgba(107, 114, 128, 0.1);
+      opacity: 0.7;
+    }
   </style>
 </head>
 <body class="bg-gray-900 text-white font-sans">
@@ -178,6 +318,31 @@
           <label for="clicks" class="input-label">Öğütüm Aralığı (Klik)</label>
           <input type="number" id="clicks" placeholder="Öğütüm Aralığı (Klik)" class="block w-full p-2 text-black rounded-lg">
         </div>
+        
+        <!-- Pour Steps Section -->
+        <div id="pourStepsSection" class="mb-4 p-4 bg-gray-700 rounded-lg">
+          <h4 class="text-md font-semibold mb-3 text-yellow-300" id="pourStepsTitle">Pour Steps (Döküş Adımları)</h4>
+          <div class="mb-3">
+            <button id="addPourStep" class="px-3 py-2 bg-green-600 rounded-lg text-sm hover:bg-green-700 transition-colors">
+              + Add Pour Step
+            </button>
+            <button id="addEndTime" class="px-3 py-2 bg-purple-600 rounded-lg text-sm ml-2 hover:bg-purple-700 transition-colors">
+              + Add End Time
+            </button>
+            <button id="clearPourSteps" class="px-3 py-2 bg-red-600 rounded-lg text-sm ml-2 hover:bg-red-700 transition-colors">
+              Clear All
+            </button>
+          </div>
+          <div id="pourStepsList" class="space-y-2">
+            <!-- Pour steps will be added here dynamically -->
+          </div>
+          <div class="mt-3 p-2 bg-gray-600 rounded text-sm">
+            <strong id="totalWaterLabel">Total Water:</strong> <span id="totalWaterDisplay">0</span> ml / <span id="targetWaterDisplay">0</span> ml
+          </div>
+          <div class="mt-2 p-2 bg-purple-600 rounded text-sm">
+            <strong id="endTimeLabel">End Time:</strong> <span id="endTimeDisplay">Not set</span>
+          </div>
+        </div>
       </div>
       <div class="flex gap-4 mt-4 hidden" id="actionButtons">
         <button id="saveBrew" class="px-4 py-2 bg-blue-500 rounded-lg w-1/2">Kaydet</button>
@@ -188,10 +353,30 @@
     <!-- Demleme Süreci Bölümü (Animasyonlu, modern UI) -->
     <div id="brewProcessSection" class="hidden fade-in">
       <div id="processRecipeSummary"></div>
-      <div id="processStopwatch">00:00</div>
+      
+      <!-- Pour Progress Visualization -->
+      <div id="pourProgressSection" class="hidden">
+        <div class="pour-progress-container">
+          <div class="pour-progress-circle">
+            <svg class="pour-progress-svg" viewBox="0 0 100 100">
+              <circle class="pour-progress-bg" cx="50" cy="50" r="45"></circle>
+              <circle class="pour-progress-fill" cx="50" cy="50" r="45" 
+                      stroke-dasharray="0 283" id="pourProgressFill"></circle>
+            </svg>
+            <div class="pour-progress-text">
+              <div class="pour-progress-current" id="pourProgressCurrent">0</div>
+              <div class="pour-progress-target" id="pourProgressTarget">ml</div>
+            </div>
+          </div>
+        </div>
+        <div class="pour-timer" id="pourTimer">00:00</div>
+        <div id="currentPourStep" class="text-center text-lg font-semibold text-blue-400 mb-4"></div>
+      </div>
+      
       <div class="flex justify-center gap-4 mt-4">
         <button id="addKeyframe" class="px-4 py-2 bg-indigo-500 rounded-lg">Döküş Ekle</button>
         <button id="finishBrew" class="px-4 py-2 bg-green-500 rounded-lg">Demlemeyi Bitir</button>
+        <button id="backToBrew" class="px-4 py-2 bg-gray-500 rounded-lg">← Back to Recipe</button>
       </div>
       <div id="keyframeList" class="mt-4"></div>
       <div class="mt-4">
@@ -223,6 +408,14 @@
     let currentHardnessMode = "Normal";
     let currentHardnessMultiplier = 15;
     let calcMode = "water";
+    
+    // Pour Steps System Variables
+    let pourSteps = [];
+    let currentPourStepIndex = 0;
+    let totalWaterAdded = 0;
+    let pourStepInterval = null;
+    let endTime = null; // Add end time variable
+    let isFirstPourDone = false; // Track if first pour (00:00) is done
 
     // Dil seçenekleri için translations objesi
     const translations = {
@@ -280,7 +473,20 @@
         machineSuggestion: "Makine sertliği öneriliyor",
         pour: "döküş",
         min: "dk",
-        sec: "sn"
+        sec: "sn",
+        pourSteps: "Döküş Adımları",
+        addPourStep: "Döküş Adımı Ekle",
+        addEndTime: "Bitiş Zamanı Ekle",
+        clearAll: "Tümünü Temizle",
+        totalWater: "Toplam Su",
+        endTime: "Bitiş Zamanı",
+        notSet: "Ayarlanmamış",
+        pourWater: "Su dök",
+        water: "su",
+        nextPour: "Sonraki",
+        finishBrewingAt: "Demlemeyi bitir",
+        allStepsCompleted: "Tüm döküş adımları tamamlandı!",
+        backToRecipe: "← Geri Dön"
       },
       en: {
         title: "Coffee Brewing Application - Version 0.6",
@@ -336,12 +542,302 @@
         machineSuggestion: "Machine hardness is recommended",
         pour: "pour",
         min: "min",
-        sec: "sec"
+        sec: "sec",
+        pourSteps: "Pour Steps",
+        addPourStep: "Add Pour Step",
+        addEndTime: "Add End Time",
+        clearAll: "Clear All",
+        totalWater: "Total Water",
+        endTime: "End Time",
+        notSet: "Not set",
+        pourWater: "Pour Water",
+        water: "water",
+        nextPour: "Next Pour",
+        finishBrewingAt: "Finish Brewing At",
+        allStepsCompleted: "All pour steps completed!",
+        backToRecipe: "← Back to Recipe"
       }
     };
 
     // Aktif dil
     let currentLanguage = 'tr';
+
+    // Pour Steps System Functions
+    function addPourStep() {
+      console.log('Adding pour step...');
+      const stepNumber = pourSteps.length + 1;
+      const pourStep = {
+        id: Date.now() + Math.random(),
+        stepNumber: stepNumber,
+        time: "",
+        amount: "",
+        total: 0
+      };
+      
+      pourSteps.push(pourStep);
+      console.log('Pour steps:', pourSteps);
+      renderPourSteps();
+      updateTotalWaterDisplay();
+    }
+
+    function addEndTime() {
+      const endTimeInput = prompt("Enter brewing end time (MM:SS format):", "02:45");
+      if (endTimeInput && endTimeInput.trim() !== "") {
+        endTime = endTimeInput.trim();
+        console.log('End time set to:', endTime);
+        updateEndTimeDisplay();
+      }
+    }
+
+    function updateEndTimeDisplay() {
+      // Update the UI to show end time if set
+      const endTimeDisplay = document.getElementById('endTimeDisplay');
+      if (endTimeDisplay) {
+        endTimeDisplay.textContent = endTime || translations[currentLanguage].notSet;
+      }
+    }
+
+    function removePourStep(stepId) {
+      pourSteps = pourSteps.filter(step => step.id !== stepId);
+      reorderPourSteps();
+      renderPourSteps();
+      updateTotalWaterDisplay();
+    }
+
+    function reorderPourSteps() {
+      pourSteps.forEach((step, index) => {
+        step.stepNumber = index + 1;
+      });
+    }
+
+    function renderPourSteps() {
+      const pourStepsList = document.getElementById('pourStepsList');
+      if (!pourStepsList) {
+        console.log('Pour steps list element not found');
+        return;
+      }
+      
+      console.log('Rendering pour steps:', pourSteps);
+      pourStepsList.innerHTML = '';
+      
+      pourSteps.forEach(step => {
+        const stepElement = document.createElement('div');
+        stepElement.className = 'pour-step-item';
+        stepElement.innerHTML = `
+          <div class="pour-step-header">
+            <div class="pour-step-number">${step.stepNumber}</div>
+            <button class="pour-step-remove" onclick="removePourStep(${step.id})">×</button>
+          </div>
+          <div class="pour-step-inputs">
+            <input type="text" placeholder="Time (MM:SS)" value="${step.time}" 
+                   onchange="updatePourStep(${step.id}, 'time', this.value)">
+            <input type="number" placeholder="Amount (ml)" value="${step.amount}" 
+                   onchange="updatePourStep(${step.id}, 'amount', this.value)">
+          </div>
+        `;
+        pourStepsList.appendChild(stepElement);
+      });
+    }
+
+    function updatePourStep(stepId, field, value) {
+      const step = pourSteps.find(s => s.id === stepId);
+      if (step) {
+        step[field] = value;
+        updateTotalWaterDisplay();
+      }
+    }
+
+    function updateTotalWaterDisplay() {
+      const totalWater = pourSteps.reduce((sum, step) => {
+        return sum + (parseInt(step.amount) || 0);
+      }, 0);
+      
+      const totalWaterDisplay = document.getElementById('totalWaterDisplay');
+      const targetWaterDisplay = document.getElementById('targetWaterDisplay');
+      
+      if (totalWaterDisplay) {
+        totalWaterDisplay.textContent = totalWater;
+      }
+      if (targetWaterDisplay) {
+        targetWaterDisplay.textContent = 
+          document.getElementById("waterAmount")?.value || 0;
+      }
+    }
+
+    function clearAllPourSteps() {
+      pourSteps = [];
+      endTime = null;
+      isFirstPourDone = false;
+      renderPourSteps();
+      updateTotalWaterDisplay();
+      updateEndTimeDisplay();
+    }
+
+    function startPourStepTracking() {
+      if (pourSteps.length === 0) return;
+      
+      currentPourStepIndex = 0;
+      totalWaterAdded = 0;
+      isFirstPourDone = false;
+      
+      // Show pour progress section
+      const pourProgressSection = document.getElementById('pourProgressSection');
+      if (pourProgressSection) {
+        pourProgressSection.classList.remove('hidden');
+      }
+      
+      // Start pour step timer
+      startPourStepTimer();
+      
+      // Update progress display
+      updatePourProgress();
+    }
+
+    function startPourStepTimer() {
+      if (pourStepInterval) clearInterval(pourStepInterval);
+      
+      console.log('Starting pour step timer with steps:', pourSteps);
+      
+      pourStepInterval = setInterval(() => {
+        const currentTime = stopwatchSeconds;
+        
+        // Handle first pour (00:00) immediately
+        if (!isFirstPourDone && pourSteps.length > 0) {
+          const firstStep = pourSteps[0];
+          if (parseTimeToSeconds(firstStep.time) === 0) {
+            // First pour is at 00:00, mark it as done immediately
+            console.log('First pour (00:00) triggered immediately');
+            isFirstPourDone = true;
+            totalWaterAdded += parseInt(firstStep.amount) || 0;
+            markPourStepActive(0);
+            updatePourProgress();
+            currentPourStepIndex = 1; // Move to next step
+          }
+        }
+        
+        // Check if we should trigger the next pour
+        if (currentPourStepIndex < pourSteps.length) {
+          const currentStep = pourSteps[currentPourStepIndex];
+          const stepTime = parseTimeToSeconds(currentStep.time);
+          
+          if (currentTime >= stepTime) {
+            console.log(`Pour step ${currentPourStepIndex + 1} triggered at ${currentTime}s (${formatTime(currentTime)})`);
+            // Mark current step as active
+            markPourStepActive(currentPourStepIndex);
+            
+            // Update progress
+            totalWaterAdded += parseInt(currentStep.amount) || 0;
+            updatePourProgress();
+            
+            // Move to next step
+            currentPourStepIndex++;
+            
+            if (currentPourStepIndex >= pourSteps.length) {
+              // All steps completed
+              console.log('All pour steps completed');
+              clearInterval(pourStepInterval);
+              markAllStepsCompleted();
+            }
+          }
+        }
+      }, 1000);
+    }
+
+    function parseTimeToSeconds(timeStr) {
+      if (!timeStr) return 0;
+      const parts = timeStr.split(':');
+      if (parts.length === 2) {
+        return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+      }
+      return 0;
+    }
+
+    function updatePourProgress() {
+      const targetWater = parseInt(document.getElementById("waterAmount")?.value) || 0;
+      const progress = targetWater > 0 ? (totalWaterAdded / targetWater) * 100 : 0;
+      
+      // Update circular progress with smooth animation
+      const pourProgressFill = document.getElementById('pourProgressFill');
+      if (pourProgressFill) {
+        const circumference = 2 * Math.PI * 45;
+        const dashArray = `${(progress / 100) * circumference} ${circumference}`;
+        pourProgressFill.style.strokeDasharray = dashArray;
+      }
+      
+      // Update text
+      const pourProgressCurrent = document.getElementById('pourProgressCurrent');
+      const pourProgressTarget = document.getElementById('pourProgressTarget');
+      const currentPourStep = document.getElementById('currentPourStep');
+      
+      if (pourProgressCurrent) {
+        pourProgressCurrent.textContent = totalWaterAdded;
+      }
+      if (pourProgressTarget) {
+        pourProgressTarget.textContent = `${targetWater} ml`;
+      }
+      
+      // Update current step display with correct logic
+      if (currentPourStep) {
+        let displayText = "";
+        
+        if (currentPourStepIndex < pourSteps.length) {
+          const currentStep = pourSteps[currentPourStepIndex];
+          displayText = `${translations[currentLanguage].pourWater} ${currentStep.amount}ml ${translations[currentLanguage].water}`;
+          
+          // Add info about next pour if available
+          if (currentPourStepIndex + 1 < pourSteps.length) {
+            const nextStep = pourSteps[currentPourStepIndex + 1];
+            displayText += ` | ${translations[currentLanguage].nextPour}: ${nextStep.amount}ml at ${nextStep.time}`;
+          } else if (endTime) {
+            displayText += ` | ${translations[currentLanguage].finishBrewingAt} ${endTime}`;
+          }
+        } else if (endTime) {
+          displayText = `${translations[currentLanguage].finishBrewingAt} ${endTime}`;
+        } else {
+          displayText = translations[currentLanguage].allStepsCompleted;
+        }
+        
+        currentPourStep.textContent = displayText;
+      }
+    }
+
+    function markPourStepActive(stepIndex) {
+      // Remove active class from all steps
+      document.querySelectorAll('.pour-step-item').forEach(item => {
+        item.classList.remove('pour-step-active');
+      });
+      
+      // Add active class to current step
+      const stepElements = document.querySelectorAll('.pour-step-item');
+      if (stepElements[stepIndex]) {
+        stepElements[stepIndex].classList.add('pour-step-active');
+      }
+    }
+
+    function markAllStepsCompleted() {
+      document.querySelectorAll('.pour-step-item').forEach(item => {
+        item.classList.add('pour-step-completed');
+        item.classList.remove('pour-step-active');
+      });
+      
+      document.getElementById('currentPourStep').textContent = translations[currentLanguage].allStepsCompleted;
+    }
+    
+    // Espresso calculations update function
+    function updateEspressoCalculations() {
+      const ratio = parseFloat(document.getElementById("espressoRatio").value);
+      if (calcMode === "water") {
+        const water = parseFloat(document.getElementById("waterAmount").value);
+        if (!isNaN(water)) {
+          document.getElementById("grammage").value = (water / ratio).toFixed(1);
+        }
+      } else {
+        const gram = parseFloat(document.getElementById("grammage").value);
+        if (!isNaN(gram)) {
+          document.getElementById("waterAmount").value = (gram * ratio).toFixed(1);
+        }
+      }
+    }
 
     // Dil değiştirme fonksiyonu
     function changeLanguage(lang) {
@@ -371,6 +867,15 @@
       
       // Arşiv ekranı metinlerini güncelle
       updateArchiveList();
+      
+      // Update pour steps UI elements
+      document.getElementById('pourStepsTitle').textContent = translations[lang].pourSteps;
+      document.getElementById('addPourStep').textContent = '+ ' + translations[lang].addPourStep;
+      document.getElementById('addEndTime').textContent = '+ ' + translations[lang].addEndTime;
+      document.getElementById('clearPourSteps').textContent = translations[lang].clearAll;
+      document.getElementById('totalWaterLabel').textContent = translations[lang].totalWater + ':';
+      document.getElementById('endTimeLabel').textContent = translations[lang].endTime + ':';
+      document.getElementById('backToBrew').textContent = translations[lang].backToRecipe;
     }
 
     // Dil seçimi event listener'ı
@@ -641,18 +1146,28 @@
     
     // Duplicate kontrolü
     function findDuplicateIndex(brew) {
-      return brews.findIndex(b => 
-        b.type === brew.type && // Aynı türde olmalı
-        b.recipeName === brew.recipeName &&
-        b.coffeeInfo === brew.coffeeInfo &&
-        b.grammage === brew.grammage &&
-        b.waterAmount === brew.waterAmount &&
-        b.temperature === brew.temperature &&
-        b.grinder === brew.grinder &&
-        b.clicks === brew.clicks &&
-        ((b.type === "Espresso" && b.espressoRatio === brew.espressoRatio) ||
-         (b.type === "V60" && b.v60Hardness === brew.v60Hardness))
-      );
+      return brews.findIndex(b => {
+        // Basic fields that must match
+        const basicMatch = b.type === brew.type && 
+                          b.recipeName === brew.recipeName &&
+                          b.coffeeInfo === brew.coffeeInfo &&
+                          b.grammage === brew.grammage &&
+                          b.waterAmount === brew.waterAmount &&
+                          b.temperature === brew.temperature &&
+                          b.grinder === brew.grinder &&
+                          b.clicks === brew.clicks;
+        
+        if (!basicMatch) return false;
+        
+        // Type-specific fields
+        if (brew.type === "Espresso") {
+          return b.espressoRatio === brew.espressoRatio;
+        } else if (brew.type === "V60") {
+          return b.v60Hardness === brew.v60Hardness;
+        }
+        
+        return false;
+      });
     }
     
     // Önceki demlemeleri güncelle
@@ -671,8 +1186,17 @@
       filteredBrews.forEach((brew, index) => {
         const option = document.createElement("option");
         const actualIndex = brews.findIndex(b => b === brew); // Gerçek index'i bul
+        
+        // Show different text for espresso vs V60
+        let displayText = `${brew.recipeName} - ${brew.grammage}g`;
+        if (brew.type === "Espresso") {
+          displayText += ` (${brew.espressoRatio || "2.0"} ratio)`;
+        } else if (brew.type === "V60") {
+          displayText += ` (${brew.v60Hardness || "Normal"} hardness)`;
+        }
+        
         option.value = actualIndex;
-        option.textContent = `${brew.recipeName} - ${brew.grammage}g`;
+        option.textContent = displayText;
         select.appendChild(option);
       });
 
@@ -696,7 +1220,7 @@
       const espressoBrews = brews.filter(brew => brew.type === "Espresso");
       const v60Brews = brews.filter(brew => brew.type === "V60");
 
-      // Espresso reçeteleri
+      // Espresso reçeteleri - no pour steps
       if (espressoBrews.length > 0) {
         const espressoSection = document.createElement("div");
         espressoSection.innerHTML = `<h3 class="text-lg font-bold mb-2">${translations[currentLanguage].espressoRecipes}</h3>`;
@@ -708,7 +1232,7 @@
         });
       }
 
-      // V60 reçeteleri
+      // V60 reçeteleri - with pour steps
       if (v60Brews.length > 0) {
         const v60Section = document.createElement("div");
         v60Section.innerHTML = `<h3 class="text-lg font-bold mt-4 mb-2">${translations[currentLanguage].v60Recipes}</h3>`;
@@ -725,6 +1249,26 @@
     function createBrewItem(brew, index) {
       const brewItem = document.createElement("div");
       brewItem.className = "p-2 border-b border-gray-600 flex flex-col gap-2";
+      
+      // Create pour steps display - only for V60 recipes
+      let pourStepsDisplay = "";
+      if (brew.type === "V60" && brew.pourSteps && brew.pourSteps.length > 0) {
+        pourStepsDisplay = `<p><strong>Pour Steps:</strong> ${brew.pourSteps.map(step => 
+          `${step.stepNumber}. ${step.time} - ${step.amount}ml`
+        ).join(", ")}</p>`;
+        
+        // Add end time if set
+        if (brew.endTime) {
+          pourStepsDisplay += `<p><strong>End Time:</strong> ${brew.endTime}</p>`;
+        }
+      }
+      
+      // Create espresso-specific display
+      let espressoDisplay = "";
+      if (brew.type === "Espresso") {
+        espressoDisplay = `<p><strong>Espresso Ratio:</strong> ${brew.espressoRatio || "2.0"}</p>`;
+      }
+      
       brewItem.innerHTML = `
         <div>
           <p><strong>#${index + 1} ${brew.recipeName}</strong></p>
@@ -732,9 +1276,10 @@
           <p>${translations[currentLanguage].waterAmount}: ${brew.waterAmount}ml, ${translations[currentLanguage].waterTemp}: ${brew.temperature}°C</p>
           <p>${translations[currentLanguage].grinder}: ${brew.grinder || "-"}, ${translations[currentLanguage].grindSize}: ${brew.clicks || "-"}</p>
           ${brew.type === "Espresso" ? 
-            `<p>${translations[currentLanguage].ratio}: ${brew.espressoRatio}</p>` : 
+            espressoDisplay : 
             `<p>${translations[currentLanguage].hardnessLevel}: ${brew.v60Hardness}</p>`
           }
+          ${pourStepsDisplay}
           ${brew.keyframes ? `<p>${translations[currentLanguage].pours}: ${brew.keyframes.join(", ")}</p>` : ""}
           ${brew.comment ? `<p>${translations[currentLanguage].comment}: ${brew.comment}</p>` : ""}
         </div>
@@ -778,7 +1323,7 @@
     
     // Brew objesi oluşturma fonksiyonu
     function getBrewDetails() {
-      return {
+      const brewData = {
         type: selectedCoffee, // "Espresso" veya "V60"
         recipeName: document.getElementById("recipeName").value,
         coffeeInfo: document.getElementById("coffeeInfo").value,
@@ -794,6 +1339,14 @@
           currentHardnessMode : null,
         keyframes: []
       };
+      
+      // Only include pour steps data for V60 recipes
+      if (selectedCoffee === "V60") {
+        brewData.pourSteps = pourSteps;
+        brewData.endTime = endTime;
+      }
+      
+      return brewData;
     }
 
     // Kahve türü seçimi - Espresso
@@ -804,6 +1357,14 @@
       document.getElementById("brewDetails").classList.remove("hidden");
       document.getElementById("actionButtons").classList.remove("hidden");
       document.getElementById("recipeName").value = "Espresso";
+      
+      // Completely disable pour steps for espresso - they don't use pour steps
+      document.getElementById("pourStepsSection").style.display = "none";
+      
+      // Clear any existing pour steps data for espresso
+      pourSteps = [];
+      endTime = null;
+      isFirstPourDone = false;
       
       // UI güncellemeleri
       document.getElementById("hardnessSelection").style.display = "none";
@@ -826,6 +1387,9 @@
       document.getElementById("brewDetails").classList.remove("hidden");
       document.getElementById("actionButtons").classList.remove("hidden");
       document.getElementById("recipeName").value = "V60";
+      
+      // Show pour steps section for V60 - they use pour steps
+      document.getElementById("pourStepsSection").style.display = "block";
       
       // UI güncellemeleri
       document.getElementById("hardnessSelection").style.display = "flex";
@@ -895,6 +1459,31 @@
       document.getElementById("clicks").value = "";
       document.getElementById("espressoRatio").value = "2.0";
       
+      // Clear pour steps - only if not espresso
+      if (selectedCoffee !== "Espresso") {
+        pourSteps = [];
+        currentPourStepIndex = 0;
+        totalWaterAdded = 0;
+        endTime = null;
+        isFirstPourDone = false;
+        if (pourStepInterval) {
+          clearInterval(pourStepInterval);
+          pourStepInterval = null;
+        }
+        renderPourSteps();
+        updateTotalWaterDisplay();
+        updateEndTimeDisplay();
+      } else {
+        // For espresso, ensure pour steps are cleared
+        pourSteps = [];
+        endTime = null;
+        isFirstPourDone = false;
+        if (pourStepInterval) {
+          clearInterval(pourStepInterval);
+          pourStepInterval = null;
+        }
+      }
+      
       // Mod sıfırlama
       calcMode = "water";
       document.getElementById("modeWater").classList.add("selected");
@@ -937,15 +1526,29 @@
           `<p>${translations[currentLanguage].hardnessLevel}: ${brew.v60Hardness}</p>`
         }
       `;
+      
+      // Load pour steps from saved recipe - only for V60
+      if (brew.type === "V60" && brew.pourSteps && brew.pourSteps.length > 0) {
+        pourSteps = [...brew.pourSteps];
+        endTime = brew.endTime || null;
+        startPourStepTracking();
+      } else {
+        // Hide pour progress section if no pour steps or not V60
+        const pourProgressSection = document.getElementById('pourProgressSection');
+        if (pourProgressSection) {
+          pourProgressSection.classList.add('hidden');
+        }
+      }
+      
       keyframes = [];
       document.getElementById("keyframeList").innerHTML = "";
       document.getElementById("brewComment").value = "";
 
       stopwatchSeconds = 0;
-      document.getElementById("processStopwatch").textContent = formatTime(stopwatchSeconds);
+      document.getElementById("pourTimer").textContent = formatTime(stopwatchSeconds);
       stopwatchInterval = setInterval(() => {
         stopwatchSeconds++;
-        document.getElementById("processStopwatch").textContent = formatTime(stopwatchSeconds);
+        document.getElementById("pourTimer").textContent = formatTime(stopwatchSeconds);
       }, 1000);
     }
     
@@ -968,6 +1571,13 @@
       stopwatchInterval = null;
       brews[currentBrewIndex].keyframes = keyframes;
       brews[currentBrewIndex].comment = document.getElementById("brewComment").value;
+      
+      // Only save pour steps data for V60 recipes
+      if (brews[currentBrewIndex].type === "V60") {
+        brews[currentBrewIndex].pourSteps = pourSteps;
+        brews[currentBrewIndex].endTime = endTime;
+      }
+      
       localStorage.setItem("brews", JSON.stringify(brews));
       alert(translations[currentLanguage].brewingComplete);
       document.getElementById("brewProcessSection").classList.add("hidden");
@@ -998,6 +1608,26 @@
       document.getElementById("grinder").value = brew.grinder || "Molent g50";
       document.getElementById("clicks").value = brew.clicks || "";
       
+      // Restore pour steps - only for V60 recipes
+      if (brew.type === "V60" && brew.pourSteps && brew.pourSteps.length > 0) {
+        pourSteps = [...brew.pourSteps];
+        renderPourSteps();
+        updateTotalWaterDisplay();
+      } else {
+        pourSteps = [];
+        renderPourSteps();
+        updateTotalWaterDisplay();
+      }
+      
+      // Restore end time - only for V60 recipes
+      if (brew.type === "V60") {
+        endTime = brew.endTime || null;
+        updateEndTimeDisplay();
+      } else {
+        endTime = null;
+        updateEndTimeDisplay();
+      }
+      
       // Kahve türüne göre özel ayarlar
       if (brew.type === "Espresso") {
         document.getElementById("espressoRatio").value = brew.espressoRatio || "2.0";
@@ -1019,6 +1649,9 @@
       selectedCoffee = "";
       document.getElementById("espressoBtn").classList.remove("selected");
       document.getElementById("v60Btn").classList.remove("selected");
+      
+      // Hide pour steps section when no coffee type is selected
+      document.getElementById("pourStepsSection").style.display = "none";
     });
     
     // Ekran geçişleri
@@ -1032,8 +1665,39 @@
       updateArchiveList();
     });
     document.getElementById("backToBrew").addEventListener("click", function() {
-      document.getElementById("archiveScreen").classList.add("hidden");
+      document.getElementById("brewProcessSection").classList.add("hidden");
       document.getElementById("brewScreen").classList.remove("hidden");
+      // Stop any running timers
+      if (stopwatchInterval) {
+        clearInterval(stopwatchInterval);
+        stopwatchInterval = null;
+      }
+      if (pourStepInterval) {
+        clearInterval(pourStepInterval);
+        pourStepInterval = null;
+      }
+    });
+    
+    // Pour Steps Event Listeners
+    document.getElementById("addPourStep").addEventListener("click", addPourStep);
+    document.getElementById("addEndTime").addEventListener("click", addEndTime);
+    document.getElementById("clearPourSteps").addEventListener("click", clearAllPourSteps);
+    
+    // Auto-set grinder to "Öğütülmüş" for office recipes (only for V60)
+    document.getElementById("recipeName").addEventListener("input", function() {
+      const recipeName = this.value.toLowerCase();
+      // Only auto-set for V60 recipes, not for espresso
+      if ((recipeName === "ofis" || recipeName === "office") && selectedCoffee === "V60") {
+        document.getElementById("grinder").value = "Öğütülmüş";
+        document.getElementById("clicksDiv").style.display = "none";
+        document.getElementById("clicks").value = "";
+      }
+    });
+    
+    // Initialize pour steps when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      renderPourSteps();
+      updateTotalWaterDisplay();
     });
   </script>
 </body>
