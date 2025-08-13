@@ -299,12 +299,12 @@
         </div>
         <!-- Su Sıcaklığı -->
         <div class="mb-2">
-          <label for="temperature" class="input-label">Su Sıcaklığı (°C)</label>
+          <label for="temperature" class="input-label" id="temperatureLabel">Su Sıcaklığı (°C)</label>
           <input type="number" id="temperature" value="94" placeholder="Su Sıcaklığı (°C)" class="block w-full p-2 text-black rounded-lg">
         </div>
         <!-- Değirmen Seçimi -->
         <div class="mb-2">
-          <label for="grinder" class="input-label">Değirmen Modeli</label>
+          <label for="grinder" class="input-label" id="grinderLabel">Değirmen Modeli</label>
           <select id="grinder" class="block w-full p-2 text-black rounded-lg">
             <option value="Molent g50">Molent g50</option>
             <option value="Timemore">Timemore</option>
@@ -315,13 +315,13 @@
         </div>
         <!-- Klik (Öğütülmüş seçilince gizlenecek) -->
         <div id="clicksDiv" class="mb-2">
-          <label for="clicks" class="input-label">Öğütüm Aralığı (Klik)</label>
+          <label for="clicks" class="input-label" id="clicksLabel">Öğütüm Aralığı (Klik)</label>
           <input type="number" id="clicks" placeholder="Öğütüm Aralığı (Klik)" class="block w-full p-2 text-black rounded-lg">
         </div>
         
         <!-- Pour Steps Section -->
         <div id="pourStepsSection" class="mb-4 p-4 bg-gray-700 rounded-lg">
-          <h4 class="text-md font-semibold mb-3 text-yellow-300" id="pourStepsTitle">Pour Steps (Döküş Adımları)</h4>
+          <h4 class="text-md font-semibold mb-3 text-yellow-300" id="pourStepsTitle">Döküş Adımları</h4>
           <div class="mb-3">
             <button id="addPourStep" class="px-3 py-2 bg-green-600 rounded-lg text-sm hover:bg-green-700 transition-colors">
               + Add Pour Step
@@ -386,7 +386,7 @@
 
     <!-- Arşiv Ekranı -->
     <div id="archiveScreen" class="mt-6 hidden">
-      <h2 class="text-xl font-semibold mb-4">Demleme Arşivi</h2>
+      <h2 class="text-xl font-semibold mb-4" id="archiveTitle">Demleme Arşivi</h2>
       <div class="flex flex-wrap gap-4 mb-4">
         <button id="exportRecipes" class="px-4 py-2 bg-blue-500 rounded-lg">Reçeteleri İndir</button>
         <button id="importRecipes" class="px-4 py-2 bg-green-500 rounded-lg">Reçete Yükle</button>
@@ -456,7 +456,6 @@
         editComment: "Yorum Düzenle",
         coffee: "Kahve",
         grinder: "Değirmen",
-        grindSize: "Öğütüm",
         ratio: "Oran",
         hardnessLevel: "Sertlik",
         pours: "Döküşler",
@@ -486,7 +485,39 @@
         nextPour: "Sonraki",
         finishBrewingAt: "Demlemeyi bitir",
         allStepsCompleted: "Tüm döküş adımları tamamlandı!",
-        backToRecipe: "← Geri Dön"
+        backToRecipe: "← Geri Dön",
+        archiveTitle: "Demleme Arşivi",
+        temperatureLabel: "Su Sıcaklığı (°C)",
+        grinderLabel: "Değirmen Modeli",
+        clicksLabel: "Öğütüm Aralığı (Klik)",
+        pourStepsTitle: "Döküş Adımları",
+        totalWaterLabel: "Toplam Su:",
+        endTimeLabel: "Bitiş Zamanı:",
+        addKeyframe: "Döküş Ekle",
+        finishBrew: "Demlemeyi Bitir",
+        backToBrew: "← Geri Dön",
+        pourStepsPlaceholder: "Zaman (DD:SS)",
+        amountPlaceholder: "Miktar (ml)",
+        pourStepsTitle: "Döküş Adımları",
+        newGrinderPrompt: "Yeni değirmen modelini girin:",
+        pourStepsText: "Döküş Adımları:",
+        endTimeText: "Bitiş Zamanı:",
+        brewingArchive: "Demleme Arşivi",
+        pourStepsText: "Döküş Adımları:",
+        endTimeText: "Bitiş Zamanı:",
+        pourStepsTitle: "Döküş Adımları",
+        totalWaterLabel: "Toplam Su:",
+        endTimeLabel: "Bitiş Zamanı:",
+        addKeyframe: "Döküş Ekle",
+        finishBrew: "Demlemeyi Bitir",
+        backToBrew: "← Geri Dön",
+        pourStepsPlaceholder: "Zaman (DD:SS)",
+        amountPlaceholder: "Miktar (ml)",
+        pourStepsTitle: "Döküş Adımları",
+        newGrinderPrompt: "Yeni değirmen modelini girin:",
+        pourStepsText: "Döküş Adımları:",
+        endTimeText: "Bitiş Zamanı:",
+        brewingArchive: "Demleme Arşivi"
       },
       en: {
         title: "Coffee Brewing Application - Version 0.6",
@@ -525,7 +556,6 @@
         editComment: "Edit Comment",
         coffee: "Coffee",
         grinder: "Grinder",
-        grindSize: "Grind Size",
         ratio: "Ratio",
         hardnessLevel: "Hardness",
         pours: "Pours",
@@ -555,7 +585,24 @@
         nextPour: "Next Pour",
         finishBrewingAt: "Finish Brewing At",
         allStepsCompleted: "All pour steps completed!",
-        backToRecipe: "← Back to Recipe"
+        backToRecipe: "← Back to Recipe",
+        archiveTitle: "Brewing Archive",
+        temperatureLabel: "Water Temperature (°C)",
+        grinderLabel: "Grinder Model",
+        clicksLabel: "Grind Size (Clicks)",
+        pourStepsTitle: "Pour Steps",
+        totalWaterLabel: "Total Water:",
+        endTimeLabel: "End Time:",
+        addKeyframe: "Add Pour",
+        finishBrew: "Finish Brewing",
+        backToBrew: "← Back to Recipe",
+        pourStepsPlaceholder: "Time (MM:SS)",
+        amountPlaceholder: "Amount (ml)",
+        pourStepsTitle: "Pour Steps",
+        newGrinderPrompt: "Enter new grinder model:",
+        pourStepsText: "Pour Steps:",
+        endTimeText: "End Time:",
+        brewingArchive: "Brewing Archive"
       }
     };
 
@@ -581,7 +628,7 @@
     }
 
     function addEndTime() {
-      const endTimeInput = prompt("Enter brewing end time (MM:SS format):", "02:45");
+      const endTimeInput = prompt(translations[currentLanguage].addEndTime + " (MM:SS format):", "02:45");
       if (endTimeInput && endTimeInput.trim() !== "") {
         endTime = endTimeInput.trim();
         console.log('End time set to:', endTime);
@@ -629,9 +676,9 @@
             <button class="pour-step-remove" onclick="removePourStep(${step.id})">×</button>
           </div>
           <div class="pour-step-inputs">
-            <input type="text" placeholder="Time (MM:SS)" value="${step.time}" 
+            <input type="text" placeholder="${translations[currentLanguage].pourStepsPlaceholder}" value="${step.time}" 
                    onchange="updatePourStep(${step.id}, 'time', this.value)">
-            <input type="number" placeholder="Amount (ml)" value="${step.amount}" 
+            <input type="number" placeholder="${translations[currentLanguage].amountPlaceholder}" value="${step.amount}" 
                    onchange="updatePourStep(${step.id}, 'amount', this.value)">
           </div>
         `;
@@ -848,7 +895,6 @@
       document.querySelector('h1').textContent = translations[lang].brewingApp;
       document.getElementById('brewScreenBtn').textContent = translations[lang].brewing;
       document.getElementById('archiveScreenBtn').textContent = translations[lang].archive;
-      // ... diğer statik metin güncellemeleri ...
       
       // Placeholder'ları güncelle
       document.getElementById('recipeName').placeholder = translations[lang].recipeName;
@@ -856,6 +902,8 @@
       document.getElementById('waterAmount').placeholder = translations[lang].waterAmount;
       document.getElementById('grammage').placeholder = translations[lang].coffeeAmount;
       document.getElementById('brewComment').placeholder = translations[lang].enterComment;
+      document.getElementById('temperature').placeholder = translations[lang].waterTemp;
+      document.getElementById('clicks').placeholder = translations[lang].grindSize;
       
       // Buton metinlerini güncelle
       document.getElementById('modeWater').textContent = translations[lang].waterMode;
@@ -865,16 +913,44 @@
       document.getElementById('hardnessAcik').textContent = translations[lang].light;
       document.getElementById('hardnessMakine').textContent = translations[lang].machine;
       
+      // Label'ları güncelle
+      document.getElementById('temperatureLabel').textContent = translations[lang].temperatureLabel;
+      document.getElementById('grinderLabel').textContent = translations[lang].grinderLabel;
+      document.getElementById('clicksLabel').textContent = translations[lang].clicksLabel;
+      
+      // Pour Steps UI elements
+      document.getElementById('pourStepsTitle').textContent = translations[lang].pourStepsTitle;
+      document.getElementById('addPourStep').textContent = '+ ' + translations[lang].addPourStep;
+      document.getElementById('addEndTime').textContent = '+ ' + translations[lang].addEndTime;
+      document.getElementById('clearPourSteps').textContent = translations[lang].clearAll;
+      document.getElementById('totalWaterLabel').textContent = translations[lang].totalWaterLabel;
+      document.getElementById('endTimeLabel').textContent = translations[lang].endTimeLabel;
+      
+      // Action buttons
+      document.getElementById('saveBrew').textContent = translations[lang].save;
+      document.getElementById('startBrew').textContent = translations[lang].saveAndBrew;
+      
+      // Brew process section
+      document.getElementById('addKeyframe').textContent = translations[lang].addKeyframe;
+      document.getElementById('finishBrew').textContent = translations[lang].finishBrew;
+      document.getElementById('backToBrew').textContent = translations[lang].backToBrew;
+      
+      // Archive section
+      document.getElementById('archiveTitle').textContent = translations[lang].archiveTitle;
+      document.getElementById('exportRecipes').textContent = translations[lang].downloadRecipes;
+      document.getElementById('importRecipes').textContent = translations[lang].uploadRecipe;
+      document.getElementById('clearArchive').textContent = translations[lang].clearList;
+      
       // Arşiv ekranı metinlerini güncelle
       updateArchiveList();
       
       // Update pour steps UI elements
-      document.getElementById('pourStepsTitle').textContent = translations[lang].pourSteps;
+      document.getElementById('pourStepsTitle').textContent = translations[lang].pourStepsTitle;
       document.getElementById('addPourStep').textContent = '+ ' + translations[lang].addPourStep;
       document.getElementById('addEndTime').textContent = '+ ' + translations[lang].addEndTime;
       document.getElementById('clearPourSteps').textContent = translations[lang].clearAll;
-      document.getElementById('totalWaterLabel').textContent = translations[lang].totalWater + ':';
-      document.getElementById('endTimeLabel').textContent = translations[lang].endTime + ':';
+      document.getElementById('totalWaterLabel').textContent = translations[lang].totalWaterLabel;
+      document.getElementById('endTimeLabel').textContent = translations[lang].endTimeLabel;
       document.getElementById('backToBrew').textContent = translations[lang].backToRecipe;
     }
 
@@ -1119,7 +1195,7 @@
         clicksDiv.style.display = "none";
         document.getElementById("clicks").value = "";
       } else if (this.value === "Kullanıcı Tanımlı") {
-        const newGrinder = prompt("Yeni değirmen modelini girin:");
+        const newGrinder = prompt(translations[currentLanguage].newGrinderPrompt);
         if (newGrinder && newGrinder.trim() !== "") {
           const option = document.createElement("option");
           option.value = newGrinder;
@@ -1253,13 +1329,13 @@
       // Create pour steps display - only for V60 recipes
       let pourStepsDisplay = "";
       if (brew.type === "V60" && brew.pourSteps && brew.pourSteps.length > 0) {
-        pourStepsDisplay = `<p><strong>Pour Steps:</strong> ${brew.pourSteps.map(step => 
+        pourStepsDisplay = `<p><strong>${translations[currentLanguage].pourStepsText}</strong> ${brew.pourSteps.map(step => 
           `${step.stepNumber}. ${step.time} - ${step.amount}ml`
         ).join(", ")}</p>`;
         
         // Add end time if set
         if (brew.endTime) {
-          pourStepsDisplay += `<p><strong>End Time:</strong> ${brew.endTime}</p>`;
+          pourStepsDisplay += `<p><strong>${translations[currentLanguage].endTimeText}</strong> ${brew.endTime}</p>`;
         }
       }
       
